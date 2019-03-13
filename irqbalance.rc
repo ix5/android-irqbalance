@@ -19,4 +19,3 @@ service irqbalance /vendor/bin/irqbalance
 	class core
 	user root
 	group root
-	oneshot
