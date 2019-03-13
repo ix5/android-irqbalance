@@ -143,8 +143,8 @@ static void irqbalance_load_watchdog(void) {
 		u64 cur_total_cputime = TOTAL_CPUTIME(__cpudata[i]);
 
 		u64 cputime_delta = cur_total_cputime - old_total_cputime;
-		u64 cputime_total_delta = 
-			(cur_total_cputime + __cpudata[i].cputime_idle) - 
+		u64 cputime_total_delta =
+			(cur_total_cputime + __cpudata[i].cputime_idle) -
 			(old_total_cputime + old_cpudata.cputime_idle);
 
 		(&__cpudata[i])->cpu_util = (cputime_delta * 100) / cputime_total_delta;
@@ -157,7 +157,7 @@ static void irqbalance_main() {
 	int total_util;
 	int irqs_processed;
 	int online_cpus;
-	char irqpath[255];		
+	char irqpath[255];
 	cpudata_t c_cpudata[NR_CPUS];
 
 	memcpy(c_cpudata, __cpudata, sizeof(cpudata_t) * NR_CPUS);
@@ -304,8 +304,8 @@ static int read_irqbalance_configuration(void) {
 		}
 	}
 
-	ALOGV("%s: +++ NR_CPUS = %d\n", __func__, NR_CPUS);
-	ALOGV("%s: +++ IRQBLCK = %d\n", __func__, irq_blacklist_num);
+	ALOGV("%s: +++ NUMBER OF CPUS = %d\n", __func__, NR_CPUS);
+	ALOGV("%s: +++ IRQ BLACKLIST = %d\n", __func__, irq_blacklist_num);
 	for (i = 0; i < irq_blacklist_num; i++) {
 		ALOGV("%s: +++  %d\n", __func__, irq_blacklist[i]);
 	}
@@ -337,7 +337,7 @@ static int scan_for_irqs(void) {
 			fscanf(fp, "%*[^\n]\n", NULL);
 		}
 	} while (ret == 1);
-	
+
 	// do not allocate memory for blocked IRQs
 	irqs_num -= irq_blacklist_num;
 
@@ -427,6 +427,6 @@ int main(int argc, char *argv[]) {
 	irqbalance_loop();
 
 	// should never be reached
-	ALOGE("%s: reached unreachable code??\n", __func__);
+	ALOGE("%s: exited main loop, this should not happen! terminating\n", __func__);
 	return 0;
 }
