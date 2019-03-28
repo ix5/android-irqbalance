@@ -19,4 +19,7 @@ irqbalance-prototype.o: irqbalance-prototype.c irqbalance.h
 configparser.o: configparser.c irqbalance.h
 	gcc -c configparser.c -o configparser.o
 
+# %.o: %.c | irqbalance.h
+# 	gcc -c $^ -o $@
+
 .PHONY: irqbalance prototype

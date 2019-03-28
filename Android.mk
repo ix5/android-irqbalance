@@ -25,12 +25,12 @@ LOCAL_PROPRIETARY_MODULE   := true
 LOCAL_INIT_RC              := irqbalance.rc
 
 LOCAL_SRC_FILES := \
-	irqbalance.c
+    irqbalance.c
 
 LOCAL_SHARED_LIBRARIES := \
-	libcutils \
-	liblog \
-	libutils
+    libcutils \
+    liblog \
+    libutils
 
 LOCAL_CFLAGS := -Wall -Werror -Wno-unused-parameter -Wno-unused-function
 

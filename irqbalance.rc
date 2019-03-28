@@ -16,6 +16,6 @@
 #
 
 service irqbalance /vendor/bin/irqbalance
-	class core
-	user root
-	group root
+    class core
+    user root
+    group root
