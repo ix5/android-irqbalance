@@ -1,6 +1,8 @@
 #ifndef _IRQBALANCE_H
 #define _IRQBALANCE_H
 
+#include <log/log.h>
+
 #include <stdbool.h>
 
 typedef unsigned char u8;

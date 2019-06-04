@@ -23,8 +23,12 @@ void parse_cpu_prios(char *prio_str) {
             // TODO: Maybe realloc more generously and then trim at
             // the end
             void *_u = realloc(cpus_with_prio, (i+1)*sizeof(int));
+            // no Wunused
+            _u = NULL;
+            //realloc(cpus_with_prio, (i+1)*sizeof(int));
             cpus_with_prio[i] = (int)strtol(token, &endchar, 10);
             printf("CPU%d: %d\n", i, cpus_with_prio[i]);
+            ALOGV("%s: CPU%d: %d\n", __func__, i, cpus_with_prio[i]);
             num_cpus_with_prio = i;
             if (*endchar != '\0') {
                 break;
@@ -47,6 +51,9 @@ void parse_ignored_irqs(char *irq_str) {
         token = strtok(NULL, ",");
         if (token != NULL) {
             void *_u = realloc(ignored_irqs, (i+1)*sizeof(int));
+            // no Wunused
+            _u = NULL;
+            //realloc(ignored_irqs, (i+1)*sizeof(int));
             /* printf("IRQ %d banned\n", ignored_irqs[i]); */
             ignored_irqs[i] = (int)strtol(token, &endchar, 10);
             ALOGV("%s: IRQ %d banned\n", __func__, ignored_irqs[i]);
@@ -64,7 +71,8 @@ void parse_thread_delay(char *irq_str) {
     token = strtok(irq_str, ",");
     THREAD_DELAY = (u64)strtol(token, &endchar, 10);
     /* printf("thread delay=%d\n", THREAD_DELAY); */
-    ALOGV("%s: thread delay=%d\n", __func__, THREAD_DELAY);
+    // THREAD_DELAY is of type u64
+    ALOGV("%s: thread delay=%llu\n", __func__, THREAD_DELAY);
 }
 
 int read_irq_conf() {

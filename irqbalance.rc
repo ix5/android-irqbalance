@@ -15,11 +15,14 @@
 # limitations under the License.
 #
 
-#service irqbalance /vendor/bin/irqbalance
-service irqbalance /system/bin/strace -o /data/irqb-strace.log /vendor/bin/irqbalance
+#service vendor.irqbalance /vendor/bin/irqbalance
+service vendor.irqbalance /system/bin/strace -o /data/irqb-strace.log /vendor/bin/irqbalance
     class core
     disabled
     user root
     group root
     # loglevel: 7 is highest, 0 lowest
     loglevel 7
+
+#On property:sys.boot_completed=1
+#    enable vendor.irqbalance

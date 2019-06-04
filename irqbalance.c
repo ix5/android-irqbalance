@@ -8,14 +8,16 @@
 #include <time.h>
 #include <unistd.h>
 
+//#include <log/log.h>
+
 #include "irqbalance.h"
 
-#if defined(LOG_VDEBUG) && LOG_VDEBUG
-#define ALOGVV ALOGV
-#else
-#define ALOGVV(...) \
-    {}
-#endif
+//#if defined(LOG_VDEBUG) && LOG_VDEBUG
+//#define ALOGVV ALOGV
+//#else
+//#define ALOGVV(...) \
+//    {}
+//#endif
 
 static int read_cpudata(cpudata_t *cpudata, int core) {
     FILE *fp = fopen("/proc/stat", "r");
@@ -158,7 +160,8 @@ static void irqbalance_main() {
         for (j = 0; j < irqnum && irqs_processed < irqs_num; j++) {
             int irqidx = irqs_processed + j;
             sprintf(irqpath, "/proc/irq/%d/smp_affinity", irqs[irqidx]);
-            ALOGVV("%s: +++ balancing IRQ %d (%s)\n", __func__, irqs[irqidx], irqpath);
+            //ALOGVV("%s: +++ balancing IRQ %d (%s)\n", __func__, irqs[irqidx], irqpath);
+            ALOGV("%s: +++ balancing IRQ %d (%s)\n", __func__, irqs[irqidx], irqpath);
 
             FILE *irqfp = fopen(irqpath, "w");
             if (irqfp) {
