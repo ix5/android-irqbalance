@@ -19,6 +19,10 @@
 //    {}
 //#endif
 
+static struct irqb_config *conf;
+static int *cpus_with_prio;
+static int num_cpus_with_prio;
+
 static int read_cpudata(cpudata_t *cpudata, int core) {
     FILE *fp = fopen("/proc/stat", "r");
     int coredummy;
@@ -284,12 +288,25 @@ int main(int argc, char *argv[]) {
     int i, ret;
     int dtsz;
 
+    conf->num_cpus_with_prio = -1;
+    /* conf.THREAD_DELAY = 1000000; */
+
     ALOGI("%s: initializing irqbalance configuration\n", __func__);
     /* ret = read_irqbalance_configuration(); */
-    ret = read_irq_conf();
+    /* ret = read_irq_conf(); */
+    ret = read_irq_conf(&conf);
+    /* ret = read_irq_conf( */
+    /*     &cpus_with_prio, */
+    /*     &num_cpus_with_prio, */
+    /*     &ignored_irqs, */
+    /*     &num_ignored_irqs, */
+    /*     &THREAD_DELAY */
+    /* ); */
     if (ret) {
         return ret;
     }
+    cpus_with_prio = conf->cpus_with_prio;
+    num_cpus_with_prio = conf->num_cpus_with_prio;
 
     ALOGI("%s: scanning for IRQs\n", __func__);
     ret = scan_for_irqs();
@@ -300,6 +317,8 @@ int main(int argc, char *argv[]) {
     ALOGI("%s: allocating memory for CPU data\n", __func__);
     /* dtsz = sizeof(cpudata_t) * NUM_CPU_CORES; */
     dtsz = sizeof(cpudata_t) * num_cpus_with_prio;
+    ALOGI("%s: cores=%d\n", __func__, num_cpus_with_prio);
+    ALOGI("%s: allocating%d=\n", __func__, dtsz);
 
     __cpudata = malloc(dtsz);
     if (!__cpudata) {

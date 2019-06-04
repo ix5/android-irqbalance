@@ -33,8 +33,8 @@ typedef struct cpudata {
 /* Assume all CPUs are IRQ CPUs */
 static int OFFS_CPUS = 0;
 
-static int *cpus_with_prio;
-static int num_cpus_with_prio = -1;
+/* static int *cpus_with_prio; */
+/* static int num_cpus_with_prio = -1; */
 
 static int *ignored_irqs;
 static int num_ignored_irqs;
@@ -49,6 +49,20 @@ static int *irq_blacklist;
 static int irq_blacklist_num;
 
 static cpudata_t *__cpudata;
+
+struct irqb_config {
+    int *cpus_with_prio;
+    /* int num_cpus_with_prio = -1; */
+    int num_cpus_with_prio;
+    /* int *ignored_irqs; */
+    /* int num_ignored_irqs; */
+    /* u64 THREAD_DELAY = 1000000; */
+    /* /1* u64 THREAD_DELAY; *1/ */
+    /* int *irqs; */
+    /* int irqs_num; */
+    /* int *irq_blacklist; */
+    /* int irq_blacklist_num; */
+};
 
 // Functions
 int read_irq_conf();

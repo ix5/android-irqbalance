@@ -1,0 +1,6 @@
+# Big cluster(2x), little cluster(2x)
+PRIO=1,1,0,0
+# mpm, arch_timer, arch_mem_timer, dhdpcie, glink-smem-native-xprt-rpm, arm-pmu
+IGNORED_IRQ=2,5,7,97,143,155
+# Delay in microseconds between balancing attempts
+THREAD_DELAY=1000000
