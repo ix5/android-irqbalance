@@ -1,30 +1,14 @@
-/*
- * Copyright (C) 2018 TeamNexus
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #define LOG_TAG "irqbalance"
-// #define LOG_NDEBUG 0
-// #define LOG_VDEBUG 1
-
-#include <cutils/log.h>
 
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "irqbalance.h"
 
 #if defined(LOG_VDEBUG) && LOG_VDEBUG
 #define ALOGVV ALOGV
@@ -32,44 +16,6 @@
 #define ALOGVV(...) \
     {}
 #endif
-
-typedef unsigned char u8;
-typedef unsigned long long u64;
-
-typedef struct cpudata {
-    // general
-    u8 core;
-    bool online;
-
-    // cputimes read from /proc/stat
-    u64 cputime_user;
-    u64 cputime_nice;
-    u64 cputime_system;
-    u64 cputime_idle;
-    u64 cputime_iowait;
-    u64 cputime_irq;
-    u64 cputime_softirq;
-    u64 cputime_steal;
-    u64 cputime_guest;
-    u64 cputime_guest_nice;
-
-    // utilization
-    u64 cpu_util;
-
-} cpudata_t;
-
-static int NR_CPUS = -1;
-static int OFFS_CPUS = -1;
-
-static u64 THREAD_DELAY = 0;
-
-static int *irqs;
-static int irqs_num;
-
-static int *irq_blacklist;
-static int irq_blacklist_num;
-
-static cpudata_t *__cpudata;
 
 static int read_cpudata(cpudata_t *cpudata, int core) {
     FILE *fp = fopen("/proc/stat", "r");
@@ -80,8 +26,10 @@ static int read_cpudata(cpudata_t *cpudata, int core) {
         return -ENOENT;
     }
 
-    // skip other cpus/non-IRQ CPUs/CPU-total
-    for (i = 0; i < (core + OFFS_CPUS + 1); i++) {
+    /* Skip other CPUs/non-IRQ CPUs/CPU-total */
+    /* for (i = 0; i < (core + OFFS_CPUS + 1); i++) { */
+    /* (Assume every CPU is a IRQ CPU) */
+    for (i = 0; i < (core + 1); i++) {
         fscanf(fp, "%*[^\n]\n", NULL);
     }
 
@@ -117,7 +65,8 @@ static int read_cpudata(cpudata_t *cpudata, int core) {
 static void irqbalance_load_watchdog(void) {
     int i, ret;
 
-    for (i = 0; i < NR_CPUS; i++) {
+    /* for (i = 0; i < NUM_CPU_CORES; i++) { */
+    for (i = 0; i < num_cpus_with_prio; i++) {
         int core = __cpudata[i].core;
 
         // store current cpudata for calcucation of cpu
@@ -157,11 +106,14 @@ static void irqbalance_main() {
     int irqs_processed;
     int online_cpus;
     char irqpath[255];
-    cpudata_t c_cpudata[NR_CPUS];
+    /* cpudata_t c_cpudata[NUM_CPU_CORES]; */
+    cpudata_t c_cpudata[num_cpus_with_prio];
 
-    memcpy(c_cpudata, __cpudata, sizeof(cpudata_t) * NR_CPUS);
+    /* memcpy(c_cpudata, __cpudata, sizeof(cpudata_t) * NUM_CPU_CORES); */
+    memcpy(c_cpudata, __cpudata, sizeof(cpudata_t) * num_cpus_with_prio);
 
-    n = NR_CPUS;
+    /* n = NUM_CPU_CORES; */
+    n = num_cpus_with_prio;
     do {
         swp = 0;
         for (i = 0; i < (n - 1); ++i) {
@@ -179,13 +131,15 @@ static void irqbalance_main() {
     total_util = 0;
     online_cpus = 0;
 
-    for (i = 0; i < NR_CPUS; i++) {
+    /* for (i = 0; i < NUM_CPU_CORES; i++) { */
+    for (i = 0; i < num_cpus_with_prio; i++) {
         total_util += (int)c_cpudata[i].cpu_util;
         if (c_cpudata[i].online)
             online_cpus++;
     }
 
-    for (i = NR_CPUS - 1; i >= 0 && irqs_processed < irqs_num; i--) {
+    /* for (i = NUM_CPU_CORES - 1; i >= 0 && irqs_processed < irqs_num; i--) { */
+    for (i = num_cpus_with_prio - 1; i >= 0 && irqs_processed < irqs_num; i--) {
         int online_index = (online_cpus - 1);
         int core = c_cpudata[i].core;
         int util = (int)c_cpudata[i].cpu_util;
@@ -199,7 +153,8 @@ static void irqbalance_main() {
         if (online_index == 0)
             irqnum = irqs_left;
 
-        ALOGV("%s: +++ core%d(%02x): util=%d;ratio=%f;irqnum=%d;irqs_processed=%d\n", __func__, core, 1 << core, util, ratio, irqnum, irqs_processed);
+        ALOGV("%s: +++ core%d(%02x): util=%d;ratio=%f;irqnum=%d;irqs_processed=%d\n",
+              __func__, core, 1 << core, util, ratio, irqnum, irqs_processed);
         for (j = 0; j < irqnum && irqs_processed < irqs_num; j++) {
             int irqidx = irqs_processed + j;
             sprintf(irqpath, "/proc/irq/%d/smp_affinity", irqs[irqidx]);
@@ -252,67 +207,6 @@ static void irqbalance_loop() {
     }
 }
 
-static int read_irqbalance_configuration(void) {
-    FILE *fp = fopen("/vendor/etc/irqbalance.conf", "r");
-    int i, ret;
-
-    if (!fp) {
-        ALOGE("%s: fail to open irqbalance configuration", __func__);
-        return -ENOENT;
-    }
-
-    while (!feof(fp)) {
-        char cmd[5];
-
-        cmd[0] = fgetc(fp);
-        if (cmd[0] == '#') {
-            fscanf(fp, "%*[^\n]\n", NULL);
-            continue;
-        }
-
-        fscanf(fp, "%3s", cmd + 1);
-
-        if (!strcmp(cmd, "cpun")) {
-            fscanf(fp, "%d\n", &NR_CPUS);
-        } else if (!strcmp(cmd, "cpuo")) {
-            fscanf(fp, "%d\n", &OFFS_CPUS);
-        } else if (!strcmp(cmd, "tdel")) {
-            fscanf(fp, "%llu\n", &THREAD_DELAY);
-        } else if (!strcmp(cmd, "blck")) {
-            int irq_blacklist_sz = 0;
-            fscanf(fp, "%d\n", &irq_blacklist_num);
-
-            irq_blacklist_sz = irq_blacklist_num * sizeof(int);
-            irq_blacklist = malloc(irq_blacklist_sz);
-            if (!irq_blacklist) {
-                ALOGE("%s: could not allocate memory for IRQ blacklist (%d bytes)\n", __func__, irq_blacklist_sz);
-                return -ENOMEM;
-            }
-            memset(irq_blacklist, 0, irq_blacklist_sz);
-
-            for (i = 0; i < irq_blacklist_num; i++) {
-                ret = fscanf(fp, "%d\n", &irq_blacklist[i]);
-                if (ret != 1) {
-                    ALOGE("%s: could not read given number of blacklisted IRQs: given %d, read %d\n", __func__, irq_blacklist_num, i);
-                    return -EINVAL;
-                }
-            }
-        } else {
-            ALOGE("%s: parsed invalid command: '%s'\n", __func__, cmd);
-            return -EINVAL;
-        }
-    }
-
-    ALOGV("%s: +++ NUMBER OF CPUS = %d\n", __func__, NR_CPUS);
-    ALOGV("%s: +++ IRQ BLACKLIST = %d\n", __func__, irq_blacklist_num);
-    for (i = 0; i < irq_blacklist_num; i++) {
-        ALOGV("%s: +++  %d\n", __func__, irq_blacklist[i]);
-    }
-
-    fclose(fp);
-    return 0;
-}
-
 static int scan_for_irqs(void) {
     FILE *fp = fopen("/proc/interrupts", "r");
     int i, j, ret, sz, dummy;
@@ -338,7 +232,8 @@ static int scan_for_irqs(void) {
     } while (ret == 1);
 
     // do not allocate memory for blocked IRQs
-    irqs_num -= irq_blacklist_num;
+    /* irqs_num -= irq_blacklist_num; */
+    irqs_num -= num_ignored_irqs;
 
     // reverse
     fseek(fp, 0, SEEK_SET);
@@ -359,7 +254,8 @@ static int scan_for_irqs(void) {
         fscanf(fp, "%d: ", &irqs[i]);
 
         for (j = 0; j < irq_blacklist_num; j++) {
-            if (irq_blacklist[j] == irqs[i]) {
+            /* if (irq_blacklist[j] == irqs[i]) { */
+            if (ignored_irqs[j] == irqs[i]) {
                 ALOGV("%s: --- Skipping IRQ %d: blacklisted\n", __func__, irqs[i]);
                 goto skipirq;
             }
@@ -386,7 +282,8 @@ int main(int argc, char *argv[]) {
     int dtsz;
 
     ALOGI("%s: initializing irqbalance configuration\n", __func__);
-    ret = read_irqbalance_configuration();
+    /* ret = read_irqbalance_configuration(); */
+    ret = read_irq_conf();
     if (ret) {
         return ret;
     }
@@ -398,7 +295,8 @@ int main(int argc, char *argv[]) {
     }
 
     ALOGI("%s: allocating memory for CPU data\n", __func__);
-    dtsz = sizeof(cpudata_t) * NR_CPUS;
+    /* dtsz = sizeof(cpudata_t) * NUM_CPU_CORES; */
+    dtsz = sizeof(cpudata_t) * num_cpus_with_prio;
 
     __cpudata = malloc(dtsz);
     if (!__cpudata) {
@@ -409,7 +307,8 @@ int main(int argc, char *argv[]) {
     memset(__cpudata, 0, dtsz);
 
     ALOGI("%s: initializing CPU data\n", __func__);
-    for (i = 0; i < NR_CPUS; i++) {
+    /* for (i = 0; i < NUM_CPU_CORES; i++) { */
+    for (i = 0; i < num_cpus_with_prio; i++) {
         cpudata_t *dt = &__cpudata[i];
 
         // set core of cpudata - required for after-sort in IRQ balancing

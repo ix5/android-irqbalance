@@ -14,7 +14,8 @@ void parse_cpu_prios(char *prio_str) {
     token = strtok(prio_str, ",");
     cpus_with_prio = malloc(sizeof(int));
     cpus_with_prio[0] = (int)strtol(token, &endchar, 10);
-    printf("CPU%d: %d\n", 0, cpus_with_prio[0]);
+    /* printf("CPU%d: %d\n", 0, cpus_with_prio[0]); */
+    ALOGV("%s: CPU%d: %d\n", __func__, 0, cpus_with_prio[0]);
     while (token != NULL) {
         i++;
         token = strtok(NULL, ",");
@@ -39,14 +40,16 @@ void parse_ignored_irqs(char *irq_str) {
     token = strtok(irq_str, ",");
     ignored_irqs = malloc(sizeof(int));
     ignored_irqs[0] = (int)strtol(token, &endchar, 10);
-    printf("IRQ %d banned\n", ignored_irqs[i]);
+    /* printf("IRQ %d banned\n", ignored_irqs[i]); */
+    ALOGV("%s: IRQ %d banned\n", __func__, ignored_irqs[i]);
     while (token != NULL) {
         i++;
         token = strtok(NULL, ",");
         if (token != NULL) {
             void *_u = realloc(ignored_irqs, (i+1)*sizeof(int));
+            /* printf("IRQ %d banned\n", ignored_irqs[i]); */
             ignored_irqs[i] = (int)strtol(token, &endchar, 10);
-            printf("IRQ %d banned\n", ignored_irqs[i]);
+            ALOGV("%s: IRQ %d banned\n", __func__, ignored_irqs[i]);
             num_ignored_irqs = i;
             if (*endchar != '\0') {
                 break;
@@ -60,12 +63,12 @@ void parse_thread_delay(char *irq_str) {
     char *endchar;
     token = strtok(irq_str, ",");
     THREAD_DELAY = (u64)strtol(token, &endchar, 10);
-    printf("thread delay=%d\n", THREAD_DELAY);
+    /* printf("thread delay=%d\n", THREAD_DELAY); */
+    ALOGV("%s: thread delay=%d\n", __func__, THREAD_DELAY);
 }
 
 int read_irq_conf() {
     FILE *fp = fopen("/vendor/etc/irqbalance.conf", "r");
-    /* FILE *fp = fopen("irqbalance.conf", "r"); */
 
     if (!fp) {
         return -ENOENT;

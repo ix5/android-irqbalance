@@ -21,3 +21,5 @@ service irqbalance /system/bin/strace -o /data/irqb-strace.log /vendor/bin/irqba
     disabled
     user root
     group root
+    # loglevel: 7 is highest, 0 lowest
+    loglevel 7

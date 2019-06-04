@@ -18,7 +18,7 @@
 //
 
 cc_binary {
-    name: "irqbalance_bp",
+    name: "irqbalance",
     proprietary: true,
     init_rc: ["irqbalance.rc"],
     shared_libs: [
@@ -27,7 +27,10 @@ cc_binary {
         "libutils",
     ],
 
-    srcs: ["irqbalance.c"],
+    srcs: [
+        "irqbalance.c",
+        "configparser.c"
+    ],
 
     cflags: [
         "-Wall",
