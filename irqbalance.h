@@ -37,6 +37,7 @@ static int num_cpus_with_prio = -1;
 static int *ignored_irqs;
 static int num_ignored_irqs;
 
+// Default: 1,000,000 ns(?)
 static u64 THREAD_DELAY = 1000000;
 
 static int *irqs;

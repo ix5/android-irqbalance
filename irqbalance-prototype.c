@@ -11,14 +11,14 @@
 #include "irqbalance.h"
 
 /* Dummy to compile without cutils */
-#define CLOCK_MONOTONIC 1
+/* #define CLOCK_MONOTONIC 1 */
 
 /* Dummy funcs to compile without cutils */
-#define ALOGV(...) \
-    {}
-#define ALOGE ALOGV
-#define ALOGI ALOGV
-#define ALOGW ALOGV
+/* #define ALOGV(...) \ */
+/*     {} */
+/* #define ALOGE ALOGV */
+/* #define ALOGI ALOGV */
+/* #define ALOGW ALOGV */
 
 #if defined(LOG_VDEBUG) && LOG_VDEBUG
 #define ALOGVV ALOGV

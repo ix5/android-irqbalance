@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 
-service irqbalance /vendor/bin/irqbalance
+#service irqbalance /vendor/bin/irqbalance
+service irqbalance /system/bin/strace -o /data/irqb-strace.log /vendor/bin/irqbalance
     class core
+    disabled
     user root
     group root

@@ -64,8 +64,8 @@ void parse_thread_delay(char *irq_str) {
 }
 
 int read_irq_conf() {
-    /* FILE *fp = fopen("/vendor/etc/irqbalance.conf", "r"); */
-    FILE *fp = fopen("irqbalance.conf", "r");
+    FILE *fp = fopen("/vendor/etc/irqbalance.conf", "r");
+    /* FILE *fp = fopen("irqbalance.conf", "r"); */
 
     if (!fp) {
         return -ENOENT;
