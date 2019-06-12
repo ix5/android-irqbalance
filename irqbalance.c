@@ -19,16 +19,18 @@
 //    {}
 //#endif
 
-static struct irqb_config *conf;
+/* static struct irqbalance_config *conf; */
 static int *cpus_with_prio;
 static int num_cpus_with_prio;
 
 static int read_cpudata(cpudata_t *cpudata, int core) {
+    ALOGE("%s: Handling core %d", __func__, core);
     FILE *fp = fopen("/proc/stat", "r");
     int coredummy;
     int i, ret;
 
     if (!fp) {
+        ALOGE("%s: Couldn't open %s", __func__, "/proc/stat");
         return -ENOENT;
     }
 
@@ -51,6 +53,7 @@ static int read_cpudata(cpudata_t *cpudata, int core) {
                  &cpudata->cputime_guest,
                  &cpudata->cputime_guest_nice);
 
+    // 11 = EAGAIN
     if (ret != 11) {
         if (cpudata->online) {
             ALOGW("%s: --- marking cpu%d as offline\n", __func__, core);
@@ -288,27 +291,26 @@ int main(int argc, char *argv[]) {
     int i, ret;
     int dtsz;
 
-    conf->num_cpus_with_prio = -1;
-    /* conf.THREAD_DELAY = 1000000; */
+    /* ALOGE("%s: *conf: %p\n", __func__, (void*)conf); */
+    ALOGE("%s: *conf: %p\n", __func__, (void*)&irqb_conf);
+    /* ALOGE("%s: conf->num_cpus_with_prio: %d\n", __func__, conf->num_cpus_with_prio); */
+    ALOGE("%s: conf->num_cpus_with_prio: %d\n", __func__, irqb_conf.num_cpus_with_prio);
+    /* conf->num_cpus_with_prio = -1; */
+    /* conf->cpus_with_prio = NULL; */
+    /* conf->THREAD_DELAY = 1000000; */
 
-    ALOGI("%s: initializing irqbalance configuration\n", __func__);
-    /* ret = read_irqbalance_configuration(); */
-    /* ret = read_irq_conf(); */
-    ret = read_irq_conf(&conf);
-    /* ret = read_irq_conf( */
-    /*     &cpus_with_prio, */
-    /*     &num_cpus_with_prio, */
-    /*     &ignored_irqs, */
-    /*     &num_ignored_irqs, */
-    /*     &THREAD_DELAY */
-    /* ); */
+    ALOGE("%s: initializing irqbalance configuration\n", __func__);
+    ret = read_irqbalance_conf(&irqb_conf);
+    /* ret = read_irqbalance_conf(conf); */
     if (ret) {
         return ret;
     }
-    cpus_with_prio = conf->cpus_with_prio;
-    num_cpus_with_prio = conf->num_cpus_with_prio;
+    /* cpus_with_prio = conf->cpus_with_prio; */
+    /* num_cpus_with_prio = conf->num_cpus_with_prio; */
+    cpus_with_prio = irqb_conf.cpus_with_prio;
+    num_cpus_with_prio = irqb_conf.num_cpus_with_prio;
 
-    ALOGI("%s: scanning for IRQs\n", __func__);
+    ALOGE("%s: scanning for IRQs\n", __func__);
     ret = scan_for_irqs();
     if (ret) {
         return ret;
@@ -318,7 +320,7 @@ int main(int argc, char *argv[]) {
     /* dtsz = sizeof(cpudata_t) * NUM_CPU_CORES; */
     dtsz = sizeof(cpudata_t) * num_cpus_with_prio;
     ALOGI("%s: cores=%d\n", __func__, num_cpus_with_prio);
-    ALOGI("%s: allocating%d=\n", __func__, dtsz);
+    ALOGI("%s: allocating dtsz=%d\n", __func__, dtsz);
 
     __cpudata = malloc(dtsz);
     if (!__cpudata) {
@@ -339,7 +341,7 @@ int main(int argc, char *argv[]) {
         ret = read_cpudata(dt, i);
         if (ret) {
             ALOGE("%s: fail to read initial cpudata for core %d", __func__, i);
-            return ret;
+            /* return ret; */
         }
     }
 

@@ -50,7 +50,7 @@ static int irq_blacklist_num;
 
 static cpudata_t *__cpudata;
 
-struct irqb_config {
+struct irqbalance_config {
     int *cpus_with_prio;
     /* int num_cpus_with_prio = -1; */
     int num_cpus_with_prio;
@@ -64,7 +64,11 @@ struct irqb_config {
     /* int irq_blacklist_num; */
 };
 
+/* static struct irqbalance_config *conf; */
+static struct irqbalance_config irqb_conf;
+
 // Functions
-int read_irq_conf();
+/* int read_irqbalance_conf(); */
+int read_irqbalance_conf(struct irqbalance_config *conf);
 
 #endif  // _IRQBALANCE_H
