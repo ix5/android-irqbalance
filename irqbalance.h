@@ -30,45 +30,18 @@ typedef struct cpudata {
 
 } cpudata_t;
 
-/* Assume all CPUs are IRQ CPUs */
-static int OFFS_CPUS = 0;
-
-/* static int *cpus_with_prio; */
-/* static int num_cpus_with_prio = -1; */
-
-static int *ignored_irqs;
-static int num_ignored_irqs;
-
-// Default: 1,000,000 ns(?)
-static u64 THREAD_DELAY = 1000000;
-
-static int *irqs;
-static int irqs_num;
-
-static int *irq_blacklist;
-static int irq_blacklist_num;
-
-static cpudata_t *__cpudata;
-
 struct irqbalance_config {
     int *cpus_with_prio;
-    /* int num_cpus_with_prio = -1; */
     int num_cpus_with_prio;
-    /* int *ignored_irqs; */
-    /* int num_ignored_irqs; */
-    /* u64 THREAD_DELAY = 1000000; */
-    /* /1* u64 THREAD_DELAY; *1/ */
-    /* int *irqs; */
-    /* int irqs_num; */
-    /* int *irq_blacklist; */
-    /* int irq_blacklist_num; */
+    int *ignored_irqs;
+    int num_ignored_irqs;
+    u64 THREAD_DELAY;
 };
 
-/* static struct irqbalance_config *conf; */
 static struct irqbalance_config irqb_conf;
+static cpudata_t *__cpudata;
 
 // Functions
-/* int read_irqbalance_conf(); */
 int read_irqbalance_conf(struct irqbalance_config *conf);
 
 #endif  // _IRQBALANCE_H
