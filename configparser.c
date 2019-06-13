@@ -99,7 +99,7 @@ int read_irqbalance_conf(struct irqbalance_config *conf) {
         /* TODO: Error handling, missing PRIO or IGNORED_IRQ is fatal */
         if (strcmp(key, "PRIO") == 0) {
             ret = parse_cpu_prios(value, conf);
-            ALOGI("%s: Cores: %d\n", __func__, i, conf->num_cpus_with_prio);
+            ALOGI("Cores: %d\n", conf->num_cpus_with_prio);
         } else if (strcmp(key, "IGNORED_IRQ") == 0) {
             ret = parse_ignored_irqs(value, conf);
         } else if (strcmp(key, "THREAD_DELAY") == 0) {
